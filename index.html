@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <?!= HtmlService.createHtmlOutputFromFile('css').getContent(); ?>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.13.16/jquery.timepicker.min.css" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.13.16/jquery.timepicker.min.js"></script>
+</head>
+<div id="map">
+    <img class="rokkuon" src="https://raw.githubusercontent.com/satoshi7190/ensyuringis/main/image/rokkuon.png">
+</div>
+<body>
+    <div class="main">
+    <!-- フォーム -->
+        <div id="registerContent" class="conteiner form-body">
+            <form id="reserveForm" name="reserveForm" action="<?= getAppUrl() ?>" method="post">
+                <!-- <div class="midasi"></div> -->
+                    地図をタップかドラッグして記録したい場所に狙いを定めてください。
+                    <div hidden>
+                        <p id = "status"></p>
+                        <a id = "map-link" target="_blank"></a>
+                    </div>
+                    <br><br>
+                    緯度
+                    <input class="input" type="text" id="userId" name="user_id" placeholder="直接入力可" value="35.550774831861816">  
+                    経度
+                    <input class="input" type="text" id="userName" name="user_name" placeholder="直接入力可" value="136.9231261248857">
+                    <div class="field"><br>
+                        <label class="label" for="calendarDateFrom">記録者名</label>
+                        <div class="control">
+                            <input class="input" type="text" id="calendarDateFrom" name="calendar_date_from">   
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="calendarDateTouserName">タイトル</label>
+                        <div class="control">
+                            <input class="input" type="text" id="calendarDateTo" name="calendar_date_to">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="comment">説明(任意)</label>
+                        <div class="control">
+                            <input class="input" type="text" id="comment" name="comment"></input>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="comment">マーカーの色</label>
+                        <div class="control">
+                            <select class="colorselect" id="colorselect" name="colorselect" >
+                                <option value="赤">赤</option>
+                                <option value="青">青</option>
+                                <option value="黄">黄</option>
+                                <option value="緑">緑</option>
+                                <option value="紫">紫</option>
+                                <option value="水色">水色</option>
+                                <option value="黄緑">黄緑</option>
+                                <option value="オレンジ">オレンジ</option>
+                                <option value="ピンク">ピンク</option>
+                            </select><input class="input" type="hidden" id="color" name="color" value="赤"></input>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="comment">地図に表示する期限<br>(今日中ならそのまま)</label>
+                        <div class="control">
+                            <input class="input" type="date" id="day" name="day"></input>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button type="button" id="submitButton" class="submit-button button is-info">記録する</button><br><br>
+                        </div>
+                    </div>   
+            </form>
+        </div>
+    </div>
+<?!= HtmlService.createHtmlOutputFromFile('js').getContent(); ?>
+</body>
+</html>

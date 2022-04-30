@@ -1,0 +1,677 @@
+<script>
+
+//スプラッシュメッセージset
+function splash(msg, custom_set){
+//Default
+var set = {
+    message_class: 'splashmsg default',
+    fadein_sec: 0.1,
+    wait_sec: 0.5,
+    fadeout_sec: 1.5,
+    opacity: 0.9,
+    trans_in: 'ease-in',
+    trans_out: 'ease-out',
+    outer_style: 'top: 0px;left: 0px;position: fixed;z-index: 1000;width: 100%;height: 100%;',
+    message_style: 'padding:0.5em;font-size:4em;color:white;background-color:gray; position: absolute;top: 50%; left: 50%;transform: translateY(-50%) translateX(-50%);-webkit-transform: translateY(-50%) translateX(-50%);',
+    style_id: 'append_splash_msg_style',
+    outer_id: 'append_splash_msg',
+    message_id: 'append_splash_msg_inner',
+    on_splash_vanished: null //callback function
+};
+//Override custom_set
+for (var key in custom_set) {
+    if (custom_set.hasOwnProperty(key)) {
+        set[key] = custom_set[key];
+    }
+}
+
+//Style
+if(!document.getElementById(set.style_id)){
+    var style = document.createElement('style');
+    style.id = set.style_id;
+    style.innerHTML = 
+        "#"+set.outer_id+" { "+set.outer_style+" } " +
+        "#"+set.outer_id+" > #"+set.message_id+" {opacity: 0;transition: opacity "+set.fadeout_sec+"s "+set.trans_out+";-webkit-transition: opacity "+set.fadeout_sec+"s "+set.trans_out+";} " +
+        "#"+set.outer_id+".show > #"+set.message_id+" {opacity: "+set.opacity+";transition: opacity "+set.fadein_sec+"s "+set.trans_in+";-webkit-transition: opacity "+set.fadein_sec+"s "+set.trans_in+";}" +
+        "#"+set.message_id+" { "+set.message_style+" } ";
+    document.body.appendChild(style);
+}
+
+//Element (Outer, Inner)
+if((e = document.getElementById(set.outer_id))) {e.parentNode.removeChild(e);if(set.on_splash_vanished) set.on_splash_vanished();}
+var splash = document.createElement('div');
+splash.id = set.outer_id;
+splash.onclick = function(){
+    if((e = document.getElementById(set.outer_id))) e.parentNode.removeChild(e);
+    if(set.on_splash_vanished) set.on_splash_vanished();
+};
+splash.innerHTML = '<div id="'+set.message_id+'" class="'+set.message_class+'">'+msg+'</div>';
+document.body.appendChild(splash);
+
+//Timer
+setTimeout(function(){if(splash) splash.classList.add('show');},0);
+setTimeout(function(){if(splash) splash.classList.remove('show');},set.wait_sec*1000);
+setTimeout(function(){if(splash && splash.parentNode) splash.parentNode.removeChild(splash);if(set.on_splash_vanished) set.on_splash_vanished();},(set.fadeout_sec+set.wait_sec)*1000);
+
+}
+
+const bounds = [
+[124.12999909678109, 25.35253652689525],
+[149.0132986021867, 48.24960402824195]
+];
+
+mapboxgl.accessToken = 'pk.eyJ1IjoiZW5zeXVyaW5naXMiLCJhIjoiY2t6cHBhdHp2MDFlMTJ3bmRsNzY4dTlkbiJ9.BtuWDU9uyDaR5Var2Y6-4A';
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/ensyuringis/ckzt6ulkx003214qu9cfzwp3f',
+    center: [136.9231261248857, 35.550774831861816],
+    zoom: 15,
+    maxBounds: bounds,
+    attributionControl: false,
+});
+
+map.on('load', () => {
+
+    //全国最新写真
+        map.addSource("saisinsyasin", {
+        type: "raster",
+        tiles: ["https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg"],
+        tileSize: 256,
+        attribution: "出典：<a href='https://www.gsi.go.jp/' target='_blank'>国土地理院</a>"
+    });
+        
+    //アカデミー建物＆自力建設
+    map.addSource("TATEMONO", {
+        type: "geojson",
+        data: "https://raw.githubusercontent.com/ensyurinGIS/map/main/geojson/TATEMONO.geojson",
+    });
+
+    //アカデミー施設名
+    map.addSource("SISETU_NAME", {
+        type: "geojson",
+        data: "https://raw.githubusercontent.com/ensyurinGIS/map/main/geojson/SISETU_NAME.geojson",
+    });
+
+    //林内ポイント
+    map.addSource('TITEN', {
+        type: 'vector',
+        url: 'mapbox://ensyuringis.cl2em8xmn1yks21o4ey2m50br-8h3uo'
+    });
+
+    //林内歩道
+    map.addSource('MITI', {
+        type: 'vector',
+        url: 'mapbox://ensyuringis.ckzt7hmq914bf21r0qywp8gop-71byn'
+    });
+
+    //林内川
+    map.addSource('KAWA', {
+        type: 'vector',
+        url: 'mapbox://ensyuringis.ckzt76xfi0g0427r67smbkb9t-2ody0'
+        });
+
+    //林班合体
+    map.addSource('ENSYURIN_rinhanzu', {
+        type: 'vector',
+        url: 'mapbox://ensyuringis.ckzt6y0c7089c2do2axbnkynn-9fnzh'
+        });
+
+    //みんなの記録
+    map.addSource('kiroku', {
+        type: 'geojson',
+        data: 'https://script.google.com/macros/s/AKfycbyN0LAXAFn9sfY_hplzrQWwbjEkQ4K2c1L489VT_C9YSHt4dIUVzx4qyJ712Ha1uFMs/exec'
+    });
+
+    //★★★レイヤーの挿入  
+
+    map.addLayer({
+        id: "saisinsyasin",
+        type: "raster",
+        source: "saisinsyasin",
+        minzoom: 0,
+        maxzoom: 24
+    });
+
+    map.addLayer({
+        id: "川",
+        type: "line",
+        source: "KAWA",
+        "source-layer": "KAWA",
+        layout: {
+            visibility: "visible",
+        },
+        paint: {
+            "line-opacity": 0.8,
+            "line-width": 5,
+            "line-color": "#0f7acc",
+        },
+    });
+
+    map.addLayer({
+    "id": '演習林-林班樹種別色分け',
+    "type": 'fill',
+    "source": "ENSYURIN_rinhanzu",
+    "source-layer": "ENSYURIN_rinhanzu",
+    "paint": {
+    'fill-opacity': 0.5,
+    "fill-color": [
+    "match",
+    ["get", "樹種"],
+    ["スギ"],
+    "hsl(101, 80%, 32%)",
+    ["スラッシュマ"],
+    "hsl(295, 71%, 44%)",
+    ["草地"],
+    "hsl(226, 79%, 52%)",
+    ["ヒノキ"],
+    "hsl(157, 69%, 58%)",
+    ["広葉樹"],
+    "hsl(46, 84%, 53%)",
+    ["アカマツ"],
+    "hsl(0, 73%, 52%)",
+    ["その他岩石"],
+    "hsl(33, 69%, 53%)",
+    "#000000"
+    ],
+    "fill-outline-color": "#000000"
+    }
+    });
+
+    map.addLayer({
+    'id': '演習林-小林班境界線',
+    'type': 'line',
+    'source': 'ENSYURIN_rinhanzu',
+    'source-layer': 'ENSYURIN_rinhanzu',
+    'layout': {
+    'visibility': 'visible'
+    },
+    'paint': {
+    "line-color": '#000000',
+    "line-width": 1.5,
+    }
+    });
+
+    map.addLayer({
+        id: "歩道",
+        type: "line",
+        source: "MITI",
+        "source-layer": "MITI",
+        layout: {
+            visibility: "visible",
+            "line-join": "bevel",
+        },
+        paint: {
+            "line-opacity": 0.8,
+            "line-color": "#8e8e7b",
+            "line-width": 5,
+        },
+    });
+
+
+    map.addLayer({
+        id: "アカデミー施設・その他建物",
+        source: "TATEMONO",
+        type: "fill",
+        filter: ["all", ["match", ["get", "カテゴリ"], ["建物"], true, false]],
+        layout: {
+            visibility: "visible",
+        },
+        paint: {
+            "fill-color": "#47504F",
+            "fill-opacity": 1,
+            "fill-outline-color": "#000000",
+        },
+    });
+
+    map.addLayer({
+        id: "自力建設",
+        type: "fill",
+        source: "TATEMONO",
+        filter: ["all", ["match", ["get", "カテゴリ"], ["自力建設"], true, false]],
+        layout: {
+            visibility: "visible",
+        },
+        paint: {
+            "fill-color": "#AE5424",
+            "fill-opacity": 1,
+            "fill-outline-color": "#000000",
+        },
+    });
+
+    map.addLayer({
+        id: "演習林-林分ラベル",
+        source: "ENSYURIN_rinhanzu",
+        "source-layer": "ENSYURIN_rinhanzu",
+        type: "symbol",
+        layout: {
+            visibility: "visible",
+            "text-field": [
+            "match",
+            ["get", "樹種"],
+            ["広葉樹"],
+            ["to-string", ["concat", ["get", "小林班ID"], "\n", ["get", "樹種"]]],
+            ["草地"],
+            ["to-string", ["concat", ["get", "小林班ID"], "\n", ["get", "樹種"]]],
+            ["その他岩石"],
+            ["to-string", ["concat", ["get", "小林班ID"], "\n", ["get", "樹種"]]],
+            [
+                "to-string",
+                [
+                "concat",
+                ["get", "小林班ID"],
+                "\n",
+                ["get", "樹種"],
+                " ",
+                ["+", ["get", "林齢"], 2],
+                "年生",
+                ],
+            ],
+            ],
+            "text-max-width": 12,
+            "text-size": 12,
+            // "text-variable-anchor": ["top", "bottom", "left", "right"],
+            // "text-radial-offset": 0.5,
+            // "text-justify": "auto",
+        },
+        paint: {
+            "text-color": "#000000",
+            "text-halo-color": "#e0e0e0",
+            "text-halo-width": 2,
+            "text-opacity": 1,
+        },
+    });
+
+    map.addLayer({
+        id: "自力建設-文字",
+        source: "SISETU_NAME",
+        type: "symbol",
+        filter: ["all", ["match", ["get", "カテゴリ"], ["自力建設"], true, false]],
+        layout: {
+            visibility: "visible",
+            "text-field": ["to-string", ["get", "name"]],
+            "text-size": 14,
+            "text-radial-offset": 0.5,
+            "text-justify": "auto",
+            "text-font": ["Open Sans Regular","Arial Unicode MS Regular"],
+            "icon-image": "dot-11",
+        },
+        paint: {
+            "text-halo-color": "#000000",
+            "text-halo-width": 2,
+            "text-opacity": 1,
+            "text-color": "#ef9271",
+        },
+    });
+
+    map.addLayer({
+        id: "アカデミー施設・その他建物-文字",
+        source: "SISETU_NAME",
+        type: "symbol",
+        filter: ["all", ["match", ["get", "カテゴリ"], ["建物", "その他"], true, false]],
+        layout: {
+            visibility: "visible",
+            "text-field": ["to-string", ["get", "name"]],
+            "text-size": 14,
+            "text-variable-anchor": ["top", "bottom", "left", "right"],
+            "text-radial-offset": 0.5,
+            "text-justify": "auto",
+            "icon-image": [
+            "case",
+            [
+                "match",
+                ["get", "name"],
+                ["森林総合教育センター(morinos)"],
+                true,
+                false,
+            ],
+            "morinosuマーク",
+            [
+                "match",
+                ["get", "name"],
+                ["アカデミーセンター"],
+                true,
+                false,
+            ],
+            "アカデミーマークアイコン",
+            "dot-11",
+            ],
+            "icon-size": [
+            "case",
+            [
+                "match",
+                ["get", "name"],
+                ["森林総合教育センター(morinos)"],
+                true,
+                false,
+            ],
+            0.4,
+            [
+                "match",
+                ["get", "name"],
+                ["アカデミーセンター"],
+                true,
+                false,
+            ],
+            0.3,
+            1,
+            ],
+        },
+        paint: {
+            "text-halo-color": "#000000",
+            "text-halo-width": 2,
+            "text-opacity": 1,
+            "text-color": "#ffffff",
+        },
+    });
+
+    map.addLayer({
+        id: "その他地点",
+        source: "TITEN",
+        "source-layer": "TITEN",
+        type: "symbol",
+        layout: {
+            visibility: "visible",
+            "text-field": ["to-string", ["get", "name"]],
+            "text-size": 14,
+            "text-offset": [0, -1],
+            "text-variable-anchor": ["top", "bottom", "left", "right"],
+            "text-radial-offset": 0.5,
+            "text-justify": "auto",
+            "icon-image": [
+            "case",
+            ["match", ["get", "name"], ["山の神"], true, false],
+            "monument-JP",
+            ["match", ["get", "name"], ["青樹滝", "蛇尾滝"], true, false],
+            "waterfall",
+            ["match", ["get", "種類"], ["岩"], true, false],
+            "triangle",
+            ["match", ["get", "name"], ["トイレ"], true, false],
+            "toilet",
+            ["match", ["get", "name"], ["古城山山頂"], true, false],
+            "mountain",
+            [
+                "match",
+                ["get", "name"],
+                ["車止めゲート", "国有林ゲート", "チェーンゲート"],
+                true,
+                false,
+            ],
+            "marker",
+            ["match", ["get", "name"], ["大杉"], true, false],
+            "park",
+            ["match", ["get", "種類"], ["駅"], true, false],
+            "rail",
+            ["match", ["get", "種類"], ["東屋"], true, false],
+            "home",
+            ["match", ["get", "name"], ["炭焼き小屋"], true, false],
+            "home",
+            ["match", ["get", "種類"], ["橋"], true, false],
+            "bridge",
+            ["match", ["get", "種類"], ["鉄塔"], true, false],
+            "鉄塔",
+            "dot-11",
+            ],
+            "icon-size": [
+            "case",
+            ["match", ["get", "種類"], ["鉄塔"], true, false],
+            0.05,
+            1,
+            ],
+        },
+        paint: {
+            "text-halo-color": "#000000",
+            "text-halo-width": 2,
+            "text-opacity": 1,
+            "text-color": "#99B8FF",
+        },
+    });
+
+    map.addLayer({
+    'id': 'みんなの記録',
+    'source': 'kiroku',
+    'type': 'circle',
+    "filter": ["match", ["get", "表示"], ["on"], true, false],
+    'layout': {
+    'visibility': 'visible',
+    },
+    "paint": {
+    "circle-stroke-width": 7,
+    "circle-stroke-color": "hsl(0, 4%, 99%)",
+    "circle-stroke-opacity": 0.3,
+    "circle-color": [
+    "match",
+    ["get", "マーカーの色"],
+    ["赤"],
+    "#f12222",
+    ["オレンジ"],
+    "#f16722",
+    ["青"],
+    "#225df1",
+    ["黄"],
+    "#f1ed22",
+    ["黄緑"],
+    "#6ef122",
+    ["緑"],
+    "#00bd23",
+    ["水色"],
+    "#22f1e7",
+    ["紫"],
+    "#8322f1",
+    ["ピンク"],
+    "#e93598",
+    "#000000",
+    ],
+    "circle-radius": [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    13,
+    1,
+    15,
+    4,
+    17,
+    10
+    ],
+    // "circle-opacity" :0
+    },
+    });
+
+    map.addLayer({
+    'id': 'みんなの記録-タイトル',
+    'source': 'kiroku',
+    'type': 'symbol',
+    "filter": ["match", ["get", "表示"], ["on"], true, false],
+    'layout': {
+    'visibility': 'visible',
+    "text-field": [
+    "concat",
+    ["get", "タイトル"],
+    "\n",
+    ["get", "記録者"],
+    ],
+    "text-size": 13,
+    'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
+    'text-radial-offset': 0.5,
+    'text-justify': 'auto',
+    "text-max-width": 18,
+    },
+    "paint": {
+    "text-halo-color": "#ffffff",
+    "text-halo-width": 3,
+    "text-color": "#000000"
+    } 
+    });
+
+});
+
+map.addControl(new mapboxgl.FullscreenControl());
+map.addControl(new mapboxgl.NavigationControl());
+map.addControl(
+    new mapboxgl.GeolocateControl({
+    positionOptions: {
+        enableHighAccuracy: true
+    },
+    trackUserLocation: true,
+    showUserHeading: true,
+    })
+);
+map.addControl(new mapboxgl.AttributionControl(), 'top-left');
+
+var today = new Date();
+today.setDate(today.getDate());
+var yyyy = today.getFullYear();
+var mm = ("0"+(today.getMonth()+1)).slice(-2);
+var dd = ("0"+today.getDate()).slice(-2);
+document.getElementById("day").value=yyyy+'-'+mm+'-'+dd;
+
+//カラー選択時set
+const selectElement = document.querySelector('.colorselect');
+selectElement.addEventListener('change', (event) => {
+    var text = $('.colorselect option:selected').text();
+    document.getElementById("color").value = text;
+});
+
+$(function () {
+    $('.timepicker').timepicker();
+    $('#submitButton').on('click', function () {
+    const text1 = document.getElementById("userId");
+    const text2 = document.getElementById("userName");
+    const text3 = document.getElementById("calendarDateFrom");
+    const text4 = document.getElementById("calendarDateTo");
+    const text5 = document.getElementById("comment");
+    const text6 = document.getElementById("color");
+    const text7 = document.getElementById("day");
+    const ido = text1.value;
+    const keido = text2.value;
+    const namae = text3.value;
+    const taitoru = text4.value;
+    const setumei = text5.value;
+    const iro = text6.value;
+    const kigen = text7.value;
+
+    if (
+    window.confirm(
+        '緯度　　：' + 
+        ido + 
+        '\r\n経度　　：' + 
+        keido + 
+        '\r\n記録者　：' + 
+        namae + 
+        '\r\nタイトル：' + 
+        taitoru + 
+        '\r\n説明　　：' + 
+        setumei + 
+        '\r\n色　　　：' + 
+        iro + 
+        '\r\n期限日　：' + 
+        kigen + 
+        '\r\n\r\nこの内容で記録しますか?\r\n'
+        )
+    ) {
+
+    const aaa = document.getElementById('submitButton');
+    aaa.disabled = true;
+
+    const req = {};
+    const params = {};
+    $('#reserveForm').find('input').each(function (index, element) {
+        const key = $(element).attr('name');
+        const val = $(element).val();
+        params[key] = val;
+    });
+    req.parameters = params;
+    google.script.run.withSuccessHandler(doSubmitSuccess).doSubmitAjax(req);
+            }
+    });
+});
+
+const doSubmitSuccess = function (result) {
+    const bbb = document.getElementById('submitButton');
+    bbb.disabled = false;
+
+    splash("位置情報を<br>記録しました！",{
+    message_class: 'splashmsg default', //メッセージエリアに設定するクラス
+    fadein_sec: 0.1, //コマンド実行からメッセージがフェードインする時間（秒）
+    wait_sec: 3, //コマンド実行からメッセージのフェードアウトを開始する時間（秒）
+    fadeout_sec: 1, //フェードアウトする時間（秒）
+    opacity: 0.9, //メッセージの透過率
+    trans_in: 'ease-in', //フェードインの加速度設定（CSSのtransition参照）
+    trans_out: 'ease-out', //フェードアウトの加速度設定（CSSのtransition参照）
+    outer_style: 'top: 0px;left: 0px;position: fixed;z-index: 1000;width: 100%;height: 100%;', //外側のスタイル
+    message_style: 'padding:0.5em;font-size:4em;color:white;background-color:gray; position: absolute;top: 50%; left: 50%;transform: translateY(-50%) translateX(-50%);-webkit-transform: translateY(-50%) translateX(-50%);', //メッセージエリアのスタイル
+    style_id: 'append_splash_msg_style', //追加する制御用スタイルタグのID
+    outer_id: 'append_splash_msg', //追加するスタイルタグのID
+    message_id: 'append_splash_msg_inner',
+    on_splash_vanished: null //コールバック関数（ function() ）
+    });
+
+};
+
+function update2() {
+
+    const status = document.querySelector('#status');
+    const mapLink = document.querySelector('#map-link');
+
+
+// mapLink.href = '';
+mapLink.textContent = '';
+
+function success(position) {
+    var latitude  = position.coords.latitude;
+    var longitude = position.coords.longitude;
+
+    document.getElementById("userId").value = latitude;
+    document.getElementById("userName").value = longitude;
+
+    status.textContent = '';
+    // mapLink.href = `https://www.openstreetmap.org/#map=18/${latitude}/${longitude}`;
+    mapLink.textContent = `緯度: ${latitude} ° 経度: ${longitude} °`;
+        map.flyTo({ 'center': [longitude, latitude], 'zoom': 17 });
+
+    };
+
+    function error() {
+    status.textContent = 'Unable to retrieve your location';
+    }
+
+    // Geolocation APIに対応している
+    if(!navigator.geolocation) {
+    status.textContent = 'Geolocation is not supported by your browser';
+    } 
+    // Geolocation APIに対応していない
+    else {
+    status.textContent = 'Locating…';
+    navigator.geolocation.getCurrentPosition(success, error);
+    }
+    };
+
+map.on('move', function (){
+    const lngLat = map.getCenter();
+    var longitude = lngLat.lng;
+    var latitude = lngLat.lat;
+    document.getElementById("userId").value = latitude;
+    document.getElementById("userName").value = longitude;
+});
+
+map.on('click', function(e) {
+    var coordinates = e.lngLat;
+        map.flyTo({
+        center: coordinates
+        });
+});
+
+function update() {
+    google.script.run
+    .withSuccessHandler(result).getScriptUrl();
+    function result(url){
+    window.open(url, '_top')
+    }
+    };  
+
+//自動リロード
+function autoreload(){
+    map.getSource('kiroku').setData('https://script.google.com/macros/s/AKfycbyN0LAXAFn9sfY_hplzrQWwbjEkQ4K2c1L489VT_C9YSHt4dIUVzx4qyJ712Ha1uFMs/exec');
+}
+setInterval(autoreload, 3000);
+
+</script>

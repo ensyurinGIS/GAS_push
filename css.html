@@ -1,0 +1,110 @@
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    overscroll-behavior-y: none;
+}
+
+/* スワイプリロード無効 */
+body {
+overscroll-behavior-y: none;
+}
+
+.main {
+    margin: 5px;
+    width: 100%;
+    border-radius: 6px;
+    overscroll-behavior-y: none;
+}
+
+.form-body {
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    height: 100%;
+    padding: 20px;
+    overscroll-behavior-y: none;
+}
+
+#reserveForm {
+    width: 100%;
+}
+
+.is-justify-content-center {
+    justify-content: center;
+}
+
+.is-flex-direction-column {
+    flex-direction: column;
+}
+
+.calendar-field input[type=date] {
+    width: 160px;
+    margin: 10px auto;
+}
+
+.calendar-field .timepicker {
+    width: 100px;
+    margin: 10px 10px 10px 0;
+}
+
+.form-body .field:not(:last-child) {
+    margin-bottom: 1.5rem;
+}
+
+.is-flex-wrap-nowrap {
+    flex-wrap: wrap;
+}
+
+.form-body .submit-button {
+    padding-left: 3em;
+    padding-right: 3em;
+}
+
+/* マーカー色選択 */
+.colorselect {
+    font-size: 18px;
+    width: 100%;
+}
+
+#map {
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    bottom: 50%;
+    width: 100%;
+    overscroll-behavior-y: none;
+}
+
+.rokkuon {
+    z-index: 2;
+    pointer-events: none;
+    position: absolute;
+    width: 250px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+}
+
+/* スプラッシュメッセージ */
+#append_splash_msg_inner.default {
+    position: absolute;
+    pointer-events: none;
+    top: 45%;
+    left: 50%;
+    width: 70%;
+    font-size: 20px;
+    font-style: "Yu Gothic UI Semibold";
+    text-align: center;
+    background-color: rgba(28, 86, 211, 0.75);
+}
+
+#append_splash_msg_inner.alert {
+    position: absolute;
+    pointer-events: none;
+}
+
+</style>
